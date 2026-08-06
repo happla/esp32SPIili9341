@@ -106,6 +106,29 @@ static int32_t mapRange(int32_t x, int32_t in_min, int32_t in_max, int32_t out_m
     }
 }
 
+//Splash screen 
+static void showSplashScreen() {
+    lcd.fillScreen(ILI9341_BLACK);
+
+    // Draw Crown (Centered around X=160, Y=70)
+    // Gold Crown Base
+    lcd.fillRect(130, 90, 60, 12, ILI9341_YELLOW);
+    lcd.fillRect(135, 75, 50, 15, ILI9341_YELLOW);
+
+    // Crown Peaks (3 spikes)
+    lcd.fillRect(130, 60, 10, 18, ILI9341_YELLOW); // Left Peak
+    lcd.fillRect(155, 50, 10, 28, ILI9341_YELLOW); // Center Peak
+    lcd.fillRect(180, 60, 10, 18, ILI9341_YELLOW); // Right Peak
+
+    // Red Jewels on top of the spikes
+    lcd.fillRect(132, 54, 6, 6, ILI9341_RED);
+    lcd.fillRect(157, 44, 6, 6, ILI9341_RED);
+    lcd.fillRect(182, 54, 6, 6, ILI9341_RED);
+
+    // Loading Text
+    lcd.drawString(100, 130, "LOADING...", ILI9341_WHITE, ILI9341_BLACK, 2);
+}
+
 static void runCalibration() {
     lcd.fillScreen(ILI9341_BLACK);
     lcd.drawString(20, 40, "TOUCH CALIBRATION", ILI9341_WHITE, ILI9341_BLACK, 2);
@@ -204,11 +227,17 @@ extern "C" void display_task(void *pvParameters) {
     io_conf.mode = GPIO_MODE_OUTPUT;
     io_conf.pin_bit_mask = (1ULL << ILI9341_PIN_LED);
     gpio_config(&io_conf);
-    gpio_set_level(ILI9341_PIN_LED, 1);
+    gpio_set_level(ILI9341_PIN_LED, 0);
 
     lcd.begin(24000000);
     touch_init();
     lcd.setRotation(1); 
+
+    showSplashScreen();
+
+    gpio_set_level(ILI9341_PIN_LED, 1);
+
+    vTaskDelay(pdMS_TO_TICKS(1500));
 
     runCalibration();
 
