@@ -16,6 +16,11 @@ static spi_device_handle_t touch_spiDev = NULL;
 static uint16_t cal_minX = 600, cal_maxX = 3800;
 static uint16_t cal_minY = 600, cal_maxY = 3800;
 
+// Sauna State Variables
+static int currentTemp = 78;   // Simulated or sensor reading
+static int targetTemp = 85;    // Target temperature
+static bool heaterOn = false;
+
 static void touch_init() {
     gpio_config_t io_conf = {};
     io_conf.mode = GPIO_MODE_OUTPUT;
@@ -105,14 +110,14 @@ static void runCalibration() {
     lcd.fillScreen(ILI9341_BLACK);
     lcd.drawString(20, 40, "TOUCH CALIBRATION", ILI9341_WHITE, ILI9341_BLACK, 2);
 
-    // 1. Top-Left Target
+    //  Top-Left Target
     lcd.fillRect(10, 10, 20, 20, ILI9341_RED);
-    lcd.drawString(40, 15, "Touch Top-Left Marker", ILI9341_GREEN, ILI9341_BLACK, 1);
+    lcd.drawString(40, 15, "TOUCH-TOP-LEFT-MARKER", ILI9341_GREEN, ILI9341_BLACK, 1);
     TouchPoint p1 = waitForTouch();
     
-    // 2. Bottom-Right Target
+    // Bottom-Right Target
     lcd.fillRect(290, 210, 20, 20, ILI9341_RED);
-    lcd.drawString(40, 110, "Touch Bottom-Right Marker", ILI9341_GREEN, ILI9341_BLACK, 1);
+    lcd.drawString(40, 110, "TOUCH BOTTOM-RIGHT MARKER", ILI9341_GREEN, ILI9341_BLACK, 1);
     TouchPoint p2 = waitForTouch();
 
     // Store measured bounds accurately
@@ -121,7 +126,7 @@ static void runCalibration() {
     cal_minY = p1.y; // Top-Left Y
     cal_maxY = p2.y; // Bottom-Right Y
 
-    printf("Calibration Complete! X_min:%d, X_max:%d, Y_min:%d, Y_max:%d\n", cal_minX, cal_maxX, cal_minY, cal_maxY);
+    printf("CALIBRATION COMPLETE! X_min:%d, X_max:%d, Y_min:%d, Y_max:%d\n", cal_minX, cal_maxX, cal_minY, cal_maxY);
 }
 
 static TouchPoint touch_get_point() {
@@ -145,6 +150,55 @@ static TouchPoint touch_get_point() {
     return p;
 }
 
+// Draw the static layout elements of the UI
+static void drawUI() {
+    lcd.fillScreen(ILI9341_BLACK);
+
+    // Top Header Bar
+    lcd.fillRect(0, 0, 320, 35, ILI9341_NAVY);
+    lcd.drawString(10, 10, "SAUNA CONTROLLER", ILI9341_WHITE, ILI9341_NAVY, 2);
+
+    // Current Temp Box (Left) 
+    lcd.fillRect(15, 45, 140, 110, ILI9341_DARKGREY);
+    lcd.fillRect(18, 48, 134, 104, ILI9341_BLACK); // Inner fill to create a border frame look
+    lcd.drawString(25, 55, "CURRENT TEMP", ILI9341_LIGHTGREY, ILI9341_BLACK, 1);
+
+    // Target Adjuster Buttons [+] and [-] (Right)
+    lcd.fillRect(170, 45, 135, 50, ILI9341_DARKGREEN);
+    lcd.drawString(230, 62, "+", ILI9341_WHITE, ILI9341_DARKGREEN, 3);
+
+    lcd.fillRect(170, 105, 135, 50, ILI9341_MAROON);
+    lcd.drawString(230, 122, "-", ILI9341_WHITE, ILI9341_MAROON, 3);
+
+    // Bottom Action Buttons
+    lcd.fillRect(15, 175, 145, 45, ILI9341_DARKGREY); // Heater Toggle Button
+    lcd.fillRect(170, 175, 135, 45, ILI9341_PURPLE);   // Calibrate Button
+    lcd.drawString(185, 190, "CALIBRATE", ILI9341_WHITE, ILI9341_PURPLE, 1);
+}
+
+// Refresh dynamic values (Temperatures & Status states) without redrawing full screen
+static void updateUIValues() {
+    char buf[16];
+
+    // Current Temp Text
+    snprintf(buf, sizeof(buf), "%d C  ", currentTemp);
+    lcd.drawString(25, 85, buf, ILI9341_WHITE, ILI9341_BLACK, 3);
+
+    // Target Temp Text
+    snprintf(buf, sizeof(buf), "TARGET: %d C ", targetTemp);
+    lcd.drawString(170, 160, buf, ILI9341_YELLOW, ILI9341_BLACK, 1);
+
+    // Status / Heater Button State text
+    if (heaterOn) {
+        lcd.fillRect(15, 175, 145, 45, ILI9341_RED);
+        lcd.drawString(30, 190, "HEATER: ON", ILI9341_WHITE, ILI9341_RED, 1);
+        lcd.drawString(220, 10, "HEATING", ILI9341_RED, ILI9341_NAVY, 1);
+    } else {
+        lcd.fillRect(15, 175, 145, 45, ILI9341_DARKGREY);
+        lcd.drawString(30, 190, "HEATER: OFF", ILI9341_WHITE, ILI9341_DARKGREY, 1);
+        lcd.drawString(220, 10, "IDLE   ", ILI9341_LIGHTGREY, ILI9341_NAVY, 1);
+    }
+}
 extern "C" void display_task(void *pvParameters) {
     gpio_config_t io_conf = {};
     io_conf.mode = GPIO_MODE_OUTPUT;
@@ -158,23 +212,46 @@ extern "C" void display_task(void *pvParameters) {
 
     runCalibration();
 
-    lcd.fillScreen(ILI9341_BLACK);
-    lcd.fillRect(10, 10, 300, 30, ILI9341_NAVY);
-    lcd.drawString(20, 18, "TOUCHSCREEN READY", ILI9341_WHITE, ILI9341_NAVY, 2);
-    lcd.drawString(20, 50, "DRAW ON THE SCREEN!", ILI9341_GREEN, ILI9341_BLACK, 1);
+    drawUI();
+    updateUIValues();
 
     char debugBuf[32];
 
     while (true) {
         TouchPoint p = touch_get_point();
         if (p.pressed) {
-            snprintf(debugBuf, sizeof(debugBuf), "X: %03d | Y: %03d    ", p.x, p.y);
-            lcd.drawString(20, 210, debugBuf, ILI9341_YELLOW, ILI9341_BLACK, 1);
+            snprintf(debugBuf, sizeof(debugBuf), "TOUCH X:%03d Y:%03d   ", p.x, p.y);
+            lcd.drawString(15, 222, debugBuf, ILI9341_CYAN, ILI9341_BLACK, 1);
 
-            if (p.x < 320 && p.y < 240) {
-                lcd.fillRect(p.x, p.y, 4, 4, ILI9341_RED);
+            // [+] Button Hitbox (Expanded slightly for easy tapping)
+            if (p.x >= 160 && p.x <= 315 && p.y >= 40 && p.y <= 100) {
+                if (targetTemp < 110) {
+                    targetTemp++;
+                    updateUIValues();
+                }
+                vTaskDelay(pdMS_TO_TICKS(150)); // Debounce
+            } 
+            // [-] Button Hitbox
+            else if (p.x >= 160 && p.x <= 315 && p.y >= 101 && p.y <= 160) {
+                if (targetTemp > 0) {
+                    targetTemp--;
+                    updateUIValues();
+                }
+                vTaskDelay(pdMS_TO_TICKS(150)); // Debounce
+            } 
+            // Heater Toggle Hitbox
+            else if (p.x >= 15 && p.x <= 160 && p.y >= 175 && p.y <= 220) {
+                heaterOn = !heaterOn;
+                updateUIValues();
+                vTaskDelay(pdMS_TO_TICKS(300));
+            } 
+            // Calibrate Button Hitbox
+            else if (p.x >= 170 && p.x <= 305 && p.y >= 175 && p.y <= 220) {
+                runCalibration();
+                drawUI();
+                updateUIValues();
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(10));
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
 }
