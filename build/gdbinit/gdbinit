@@ -1,0 +1,2 @@
+source /Users/hannupham/Desktop/display-esp32/build/gdbinit/symbols
+source /Users/hannupham/Desktop/display-esp32/build/gdbinit/connect
