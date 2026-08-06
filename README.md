@@ -26,3 +26,8 @@ esp32_display_project/
 | T_DIN |  GPIO23 |
 | T_DO | GPIO 19 |
 | T_IRQ | GPIO21 |
+
+<div>
+    <img src="https://github.com/happla/esp32SPIili9341/blob/main/IMG_1814.JPG" width="400">
+</div>
+[SaunaControllerUI](https://github.com/happla/esp32SPIili9341/blob/main/IMG_1814.JPG)
