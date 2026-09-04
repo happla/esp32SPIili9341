@@ -1,3 +1,6 @@
+# TODO:
+- use lvgl
+  
 ```
 esp32_display_project/
 ├── CMakeLists.txt              # Root CMake configuration
@@ -30,3 +33,5 @@ esp32_display_project/
 <div>
     <img src="https://github.com/happla/esp32SPIili9341/blob/main/IMG_1814.JPG" width="400">
 </div>
+
+
