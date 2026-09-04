@@ -1,5 +1,6 @@
-# TODO:
+# next steps:
 - use lvgl
+- fix calibration through nvr so user doesnt have to calibrate everytime display turns on
   
 ```
 esp32_display_project/
