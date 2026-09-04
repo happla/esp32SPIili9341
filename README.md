@@ -1,5 +1,5 @@
 # next steps:
-- use lvgl
+- use lvgl for better ui
 - fix calibration through nvr so user doesnt have to calibrate everytime display turns on
   
 ```
