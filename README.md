@@ -1,28 +1,53 @@
-```
-esp32_display_project/
-├── CMakeLists.txt              # Root CMake configuration
-└── main/
-    ├── CMakeLists.txt          # Component CMake configuration
-    ├── DisplayTask.h           # Task header prototype
-    ├── DisplayTask.cpp         # Task implementation (display + touch loop)
-    ├── ILI9341.h               # ESP32 ILI9341 driver header
-    ├── ILI9341.cpp             # ESP32 ILI9341 driver implementation
-    ├── pins_esp32.h            # Pin definitions for ESP32-WROOM (VSPI)
-    └── main.cpp                # app_main entry point
+# ILI9341 Pico W / Pico 2 W
+
+Pico SDK project for an ILI9341 display with LVGL and FreeRTOS.
+
+## Hardware
+
+The current pin map is shared by Pico W and Pico 2 W:
+
+| Signal | GPIO |
+| --- | ---: |
+| MISO / T_DO | 16 |
+| Display CS | 17 |
+| SCK / T_CLK | 18 |
+| MOSI / T_DIN | 19 |
+| DC | 20 |
+| RESET | 21 |
+| Backlight | 22 |
+| Touch CS | 15 |
+| Touch IRQ | 14 |
+
+## Build
+
+Set `PICO_SDK_PATH` to the installed Pico SDK, then configure for Pico W:
+
+```sh
+cmake -S . -B build-pico -G Ninja -DPICO_BOARD=pico_w
+cmake --build build-pico
 ```
 
-| Display |  ESP32-wroom pins |
-| --- | --- |
-| VCC | 3v3 |
-| GND  |  GND |
-| CS | GPIO5 |
-| DC | GPIO2  |
-| RST |  GPIO4 |
-| MOSI |  GPIO23 |
-| SCK | GPIO18 |
-| MISO |  GPIO19 |
-| LED | 3v3 |
-| T_CS | GPIO15 |
-| T_DIN |  GPIO23 |
-| T_DO | GPIO 19 |
-| T_IRQ | GPIO21 |
+For Pico 2 W, configure a separate build directory:
+
+```sh
+cmake -S . -B build-pico2w -G Ninja -DPICO_BOARD=pico2_w
+cmake --build build-pico2w
+```
+
+LVGL and the Pico-compatible FreeRTOS kernel are fetched by CMake into the build
+directory. They are not copied into the source tree.
+
+The generated UF2 is `build-pico/ili9341_pico.uf2` or
+`build-pico2w/ili9341_pico.uf2`.
+
+## Flashing without BOOTSEL
+
+With the board connected and running firmware, use:
+
+```sh
+picotool load -f build-pico/ili9341_pico.uf2
+picotool reboot
+```
+
+If the firmware is not running, use SWD with a debug probe. The broken BOOTSEL
+button does not prevent SWD programming.
