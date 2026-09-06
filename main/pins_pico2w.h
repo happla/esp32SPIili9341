@@ -12,6 +12,8 @@
 
 // Define hardware SPI block
 #define ILI9341_SPI      spi0
+#define ILI9341_TFTWIDTH  240
+#define ILI9341_TFTHEIGHT 320
 
 // Display pin mappings 
 #define ILI9341_PIN_MISO 16 //RX

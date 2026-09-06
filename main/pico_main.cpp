@@ -7,6 +7,12 @@
 #include "pico_ili9341.h"
 #include "pins_pico2w.h"
 
+extern "C" void vApplicationStackOverflowHook(TaskHandle_t, char *) {
+    taskDISABLE_INTERRUPTS();
+    for (;;) {
+    }
+}
+
 static void lvgl_task(void *) {
     lv_init();
     ili9341_init();

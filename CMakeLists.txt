@@ -43,10 +43,7 @@ target_include_directories(lvgl PUBLIC
 	${freertos_kernel_SOURCE_DIR}/include
 	${freertos_kernel_SOURCE_DIR}/portable/ThirdParty/GCC/RP2040/include
 )
-target_link_libraries(lvgl PUBLIC
-	pico_stdlib
-	FreeRTOS-Kernel
-)
+target_link_libraries(lvgl PUBLIC pico_stdlib)
 
 add_executable(ili9341_pico
 	main/pico_main.cpp

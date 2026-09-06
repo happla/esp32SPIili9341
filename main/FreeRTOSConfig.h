@@ -1,7 +1,7 @@
 #pragma once
 
 #define configUSE_PREEMPTION                    1
-#define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
+#define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
 #define configUSE_IDLE_HOOK                     0
 #define configUSE_TICK_HOOK                     0
 #define configCPU_CLOCK_HZ                      (configCPU_CLOCK_HZ_)
@@ -34,6 +34,7 @@
 #define INCLUDE_vTaskDelay                      1
 #define INCLUDE_xTaskGetSchedulerState          1
 #define INCLUDE_vTaskDelete                     1
+#define INCLUDE_xTimerPendFunctionCall           1
 
 #define configASSERT(condition)                 \
 	do { if (!(condition)) { for (;;) {} } } while (0)
