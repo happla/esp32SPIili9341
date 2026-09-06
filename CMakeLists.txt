@@ -25,6 +25,12 @@ if(NOT freertos_kernel_POPULATED)
 	FetchContent_Populate(freertos_kernel)
 endif()
 
+set(FREERTOS_KERNEL_DIR ${freertos_kernel_SOURCE_DIR})
+set(FREERTOS_PORT_DIR ${FREERTOS_KERNEL_DIR}/portable/ThirdParty/GCC/RP2040)
+set(FREERTOS_CONFIG_FILE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/main)
+set(FREERTOS_KERNEL_PATH ${FREERTOS_KERNEL_DIR} CACHE PATH "FreeRTOS kernel path")
+include(${FREERTOS_PORT_DIR}/FreeRTOS_Kernel_import.cmake)
+
 FetchContent_Declare(
 	lvgl
 	GIT_REPOSITORY https://github.com/lvgl/lvgl.git
@@ -37,13 +43,10 @@ target_include_directories(lvgl PUBLIC
 	${freertos_kernel_SOURCE_DIR}/include
 	${freertos_kernel_SOURCE_DIR}/portable/ThirdParty/GCC/RP2040/include
 )
-target_link_libraries(lvgl PUBLIC pico_stdlib)
-
-set(FREERTOS_KERNEL_DIR ${freertos_kernel_SOURCE_DIR})
-set(FREERTOS_PORT_DIR ${FREERTOS_KERNEL_DIR}/portable/ThirdParty/GCC/RP2040)
-set(FREERTOS_CONFIG_FILE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/main)
-set(FREERTOS_KERNEL_PATH ${FREERTOS_KERNEL_DIR} CACHE PATH "FreeRTOS kernel path")
-include(${FREERTOS_PORT_DIR}/FreeRTOS_Kernel_import.cmake)
+target_link_libraries(lvgl PUBLIC
+	pico_stdlib
+	FreeRTOS-Kernel
+)
 
 add_executable(ili9341_pico
 	main/pico_main.cpp

@@ -12,6 +12,7 @@
 #define configMAX_TASK_NAME_LEN                 16
 #define configUSE_16_BIT_TICKS                  0
 #define configIDLE_SHOULD_YIELD                 1
+
 #define configUSE_MUTEXES                       1
 #define configUSE_RECURSIVE_MUTEXES             1
 #define configUSE_COUNTING_SEMAPHORES            1
@@ -20,6 +21,7 @@
 #define configTIMER_TASK_PRIORITY               (configMAX_PRIORITIES - 1)
 #define configTIMER_QUEUE_LENGTH                8
 #define configTIMER_TASK_STACK_DEPTH            512
+
 #define configSUPPORT_DYNAMIC_ALLOCATION        1
 #define configSUPPORT_STATIC_ALLOCATION         0
 #define configAPPLICATION_ALLOCATED_HEAP        0
@@ -34,11 +36,10 @@
 #define INCLUDE_vTaskDelete                     1
 
 #define configASSERT(condition)                 \
-    do { if (!(condition)) { for (;;) {} } } while (0)
+	do { if (!(condition)) { for (;;) {} } } while (0)
 
 #define configUSE_TRACE_FACILITY                0
-#define configUSE_MUTEXES                       1
-#define configQUEUE_REGISTRY_SIZE              8
+#define configQUEUE_REGISTRY_SIZE               8
 
-#include <stdint.h>
-    do { if (!(condition)) { taskDISABLE_INTERRUPTS(); for (;;) {} } } while (0)
+#define configSUPPORT_PICO_SYNC_INTEROP         1
+#define configSUPPORT_PICO_TIME_INTEROP         1

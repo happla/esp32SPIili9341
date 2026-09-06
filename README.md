@@ -63,6 +63,33 @@ has not yet been hardware-tested.
 The generated UF2 is `build-pico/ili9341_pico.uf2` or
 `build-pico2w/ili9341_pico.uf2`.
 
+## Robot Framework Tests
+
+The firmware smoke suite is in `tests/firmware.robot`. It checks the LVGL
+display path, pin definitions, Pico W configuration, firmware compilation, and
+UF2 generation without requiring a connected board.
+
+Run the source and build checks with RobotCode:
+
+```sh
+robotcode robot -i sourceORbuild tests/firmware.robot
+```
+
+With a Pico connected and already running firmware, check board detection:
+
+```sh
+robotcode robot -i hardware tests/firmware.robot
+```
+
+To intentionally load and reboot the board, include the `flash` tag:
+
+```sh
+robotcode robot -i flash tests/firmware.robot
+```
+
+The suite writes its build output to `build-robot/`. Hardware tests are kept
+separate because `picotool load` changes the firmware on the connected board.
+
 ## Flashing
 
 ### Running firmware

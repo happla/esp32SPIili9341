@@ -93,17 +93,23 @@ void ili9341_init() {
 void ili9341_flush(lv_display_t *display, const lv_area_t *area, uint8_t *pixels) {
     const uint16_t width = static_cast<uint16_t>(area->x2 - area->x1 + 1);
     const uint16_t height = static_cast<uint16_t>(area->y2 - area->y1 + 1);
+    uint8_t line_buffer[ILI9341_TFTWIDTH * 2];
+
+    if (width > ILI9341_TFTWIDTH) {
+        lv_display_flush_ready(display);
+        return;
+    }
+
     set_window(area->x1, area->y1, area->x2, area->y2);
 
     for (uint16_t row = 0; row < height; ++row) {
         uint8_t *line = pixels + row * width * 2;
         for (uint16_t pixel = 0; pixel < width; ++pixel) {
             const uint16_t offset = pixel * 2;
-            const uint8_t low = line[offset];
-            line[offset] = line[offset + 1];
-            line[offset + 1] = low;
+            line_buffer[offset] = line[offset + 1];
+            line_buffer[offset + 1] = line[offset];
         }
-        data(line, width * 2);
+        data(line_buffer, width * 2);
     }
 
     lv_display_flush_ready(display);
