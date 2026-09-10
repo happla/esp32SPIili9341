@@ -62,6 +62,70 @@ void write_color(uint16_t color, size_t count) {
     gpio_put(ILI9341_PIN_CS, 1);
 }
 
+const uint8_t *glyph(char value) {
+    static const uint8_t space[] = {0, 0, 0, 0, 0};
+    static const uint8_t digits[][5] = {
+        {0x3E, 0x51, 0x49, 0x45, 0x3E}, {0x00, 0x42, 0x7F, 0x40, 0x00},
+        {0x42, 0x61, 0x51, 0x49, 0x46}, {0x21, 0x41, 0x45, 0x4B, 0x31},
+        {0x18, 0x14, 0x12, 0x7F, 0x10}, {0x27, 0x45, 0x45, 0x45, 0x39},
+        {0x3C, 0x4A, 0x49, 0x49, 0x30}, {0x01, 0x71, 0x09, 0x05, 0x03},
+        {0x36, 0x49, 0x49, 0x49, 0x36}, {0x06, 0x49, 0x49, 0x29, 0x1E}
+    };
+    static const uint8_t letters[][5] = {
+        {0x7E, 0x11, 0x11, 0x11, 0x7E}, {0x7F, 0x49, 0x49, 0x49, 0x36},
+        {0x3E, 0x41, 0x41, 0x41, 0x22}, {0x7F, 0x41, 0x41, 0x22, 0x1C},
+        {0x7F, 0x49, 0x49, 0x49, 0x41}, {0x7F, 0x09, 0x09, 0x09, 0x01},
+        {0x3E, 0x41, 0x49, 0x49, 0x7A}, {0x7F, 0x08, 0x08, 0x08, 0x7F},
+        {0x00, 0x41, 0x7F, 0x41, 0x00}, {0x20, 0x40, 0x41, 0x3F, 0x01},
+        {0x7F, 0x08, 0x14, 0x22, 0x41}, {0x7F, 0x40, 0x40, 0x40, 0x40},
+        {0x7F, 0x02, 0x0C, 0x02, 0x7F}, {0x7F, 0x04, 0x08, 0x10, 0x7F},
+        {0x3E, 0x41, 0x41, 0x41, 0x3E}, {0x7F, 0x09, 0x09, 0x09, 0x06},
+        {0x3E, 0x41, 0x51, 0x21, 0x5E}, {0x7F, 0x09, 0x19, 0x29, 0x46},
+        {0x26, 0x49, 0x49, 0x49, 0x32}, {0x01, 0x01, 0x7F, 0x01, 0x01},
+        {0x3F, 0x40, 0x40, 0x40, 0x3F}, {0x1F, 0x20, 0x40, 0x20, 0x1F},
+        {0x3F, 0x40, 0x38, 0x40, 0x3F}, {0x63, 0x14, 0x08, 0x14, 0x63},
+        {0x07, 0x08, 0x70, 0x08, 0x07}, {0x61, 0x51, 0x49, 0x45, 0x43}
+    };
+    static const uint8_t plus[] = {0x08, 0x08, 0x3E, 0x08, 0x08};
+    static const uint8_t minus[] = {0x08, 0x08, 0x08, 0x08, 0x08};
+    static const uint8_t colon[] = {0x00, 0x36, 0x36, 0x00, 0x00};
+    if (value >= '0' && value <= '9') return digits[value - '0'];
+    if (value >= 'A' && value <= 'Z') return letters[value - 'A'];
+    if (value == '+') return plus;
+    if (value == '-') return minus;
+    if (value == ':') return colon;
+    return space;
+}
+
+void draw_character(uint16_t x, uint16_t y, char value, uint16_t foreground, uint16_t background, uint8_t scale) {
+    if (scale == 0) scale = 1;
+    const uint16_t width = 6 * scale;
+    const uint16_t height = 8 * scale;
+    uint8_t pixels[18 * 24 * 2];
+    for (uint16_t pixel = 0; pixel < width * height; ++pixel) {
+        pixels[pixel * 2] = static_cast<uint8_t>(background >> 8);
+        pixels[pixel * 2 + 1] = static_cast<uint8_t>(background);
+    }
+    const uint8_t *bitmap = glyph(value);
+    for (uint16_t row = 0; row < 7; ++row) {
+        for (uint16_t column = 0; column < 5; ++column) {
+            const bool set = bitmap[column] & (1u << row);
+            for (uint8_t dy = 0; dy < scale; ++dy) {
+                for (uint8_t dx = 0; dx < scale; ++dx) {
+                    const uint16_t px = column * scale + dx;
+                    const uint16_t py = row * scale + dy;
+                    const uint16_t color = set ? foreground : background;
+                    const size_t offset = (py * width + px) * 2;
+                    pixels[offset] = static_cast<uint8_t>(color >> 8);
+                    pixels[offset + 1] = static_cast<uint8_t>(color);
+                }
+            }
+        }
+    }
+    set_window(x, y, x + width - 1, y + height - 1);
+    data(pixels, static_cast<size_t>(width) * height * 2);
+}
+
 }
 
 void ili9341_init() {
@@ -93,7 +157,7 @@ void ili9341_init() {
     const uint8_t pixel_format = 0x55;
     command_with_data(cmd_colmod, &pixel_format, 1);
 
-    const uint8_t memory_access = 0x48;
+    const uint8_t memory_access = 0x28;
     command_with_data(cmd_madctl, &memory_access, 1);
     command(cmd_dispon);
     sleep_ms(100);
@@ -112,6 +176,15 @@ void ili9341_fill_rect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, 
     if (y + height > ILI9341_TFTHEIGHT) height = ILI9341_TFTHEIGHT - y;
     set_window(x, y, x + width - 1, y + height - 1);
     write_color(color, static_cast<size_t>(width) * height);
+}
+
+void ili9341_draw_text(uint16_t x, uint16_t y, const char *text, uint16_t foreground, uint16_t background, uint8_t scale) {
+    const uint16_t advance = 6 * (scale == 0 ? 1 : scale);
+    while (*text != '\0' && x + advance <= ILI9341_TFTWIDTH) {
+        draw_character(x, y, *text, foreground, background, scale);
+        x += advance;
+        ++text;
+    }
 }
 
 void ili9341_flush(lv_display_t *display, const lv_area_t *area, uint8_t *pixels) {

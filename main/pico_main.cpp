@@ -30,6 +30,14 @@ static void display_task(void *) {
     ili9341_fill_rect(170, 105, 135, 50, maroon);
     ili9341_fill_rect(15, 175, 145, 45, dark_gray);
     ili9341_fill_rect(170, 175, 135, 45, purple);
+    ili9341_draw_text(10, 10, "SAUNA CONTROLLER", 0xFFFF, navy, 2);
+    ili9341_draw_text(25, 55, "CURRENT TEMP", 0xC618, black, 1);
+    ili9341_draw_text(35, 88, "78 C", 0xFFFF, black, 2);
+    ili9341_draw_text(205, 62, "+", 0xFFFF, dark_green, 3);
+    ili9341_draw_text(205, 122, "-", 0xFFFF, maroon, 3);
+    ili9341_draw_text(170, 160, "TARGET: 85 C", 0xFFE0, black, 1);
+    ili9341_draw_text(25, 190, "HEATER: OFF", 0xFFFF, dark_gray, 1);
+    ili9341_draw_text(185, 190, "CALIBRATE", 0xFFFF, purple, 1);
 
     while (true) {
         vTaskDelay(pdMS_TO_TICKS(1000));
