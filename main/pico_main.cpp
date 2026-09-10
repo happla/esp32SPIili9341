@@ -1,7 +1,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "lvgl.h"
 #include "pico/stdlib.h"
 
 #include "pico_ili9341.h"
@@ -13,38 +12,32 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t, char *) {
     }
 }
 
-static void lvgl_task(void *) {
-    lv_init();
+static void display_task(void *) {
     ili9341_init();
 
-    static lv_color_t buffer[ILI9341_TFTWIDTH * 20];
-    lv_display_t *display = lv_display_create(ILI9341_TFTWIDTH, ILI9341_TFTHEIGHT);
-    lv_display_set_buffers(
-        display,
-        buffer,
-        nullptr,
-        sizeof(buffer),
-        LV_DISPLAY_RENDER_MODE_PARTIAL
-    );
-    lv_display_set_flush_cb(display, ili9341_flush);
+    constexpr uint16_t black = 0x0000;
+    constexpr uint16_t navy = 0x000F;
+    constexpr uint16_t dark_gray = 0x7BEF;
+    constexpr uint16_t dark_green = 0x0320;
+    constexpr uint16_t maroon = 0x7800;
+    constexpr uint16_t purple = 0x780F;
 
-    lv_obj_t *label = lv_label_create(lv_screen_active());
-    lv_label_set_text(label, "Pico W + ILI9341");
-    lv_obj_center(label);
+    ili9341_fill(black);
+    ili9341_fill_rect(0, 0, 320, 35, navy);
+    ili9341_fill_rect(15, 45, 140, 110, dark_gray);
+    ili9341_fill_rect(18, 48, 134, 104, black);
+    ili9341_fill_rect(170, 45, 135, 50, dark_green);
+    ili9341_fill_rect(170, 105, 135, 50, maroon);
+    ili9341_fill_rect(15, 175, 145, 45, dark_gray);
+    ili9341_fill_rect(170, 175, 135, 45, purple);
 
     while (true) {
-        lv_tick_inc(1);
-        lv_timer_handler();
-        vTaskDelay(pdMS_TO_TICKS(1));
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
 static void application_task(void *) {
-    gpio_init(ILI9341_PIN_LED);
-    gpio_set_dir(ILI9341_PIN_LED, GPIO_OUT);
-
     while (true) {
-        gpio_put(ILI9341_PIN_LED, !gpio_get(ILI9341_PIN_LED));
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
@@ -52,7 +45,7 @@ static void application_task(void *) {
 int main() {
     stdio_init_all();
 
-    xTaskCreate(lvgl_task, "LVGL", 2048, nullptr, 2, nullptr);
+    xTaskCreate(display_task, "Display", 2048, nullptr, 2, nullptr);
     xTaskCreate(application_task, "Application", 1024, nullptr, 1, nullptr);
     vTaskStartScheduler();
 

@@ -50,19 +50,28 @@ void set_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
     command(cmd_ramwr);
 }
 
+void write_color(uint16_t color, size_t count) {
+    const uint8_t pixel[] = {
+        static_cast<uint8_t>(color >> 8), static_cast<uint8_t>(color)
+    };
+    gpio_put(ILI9341_PIN_DC, 1);
+    gpio_put(ILI9341_PIN_CS, 0);
+    for (size_t index = 0; index < count; ++index) {
+        spi_write_blocking(ILI9341_SPI, pixel, sizeof(pixel));
+    }
+    gpio_put(ILI9341_PIN_CS, 1);
+}
+
 }
 
 void ili9341_init() {
     gpio_init(ILI9341_PIN_CS);
     gpio_init(ILI9341_PIN_DC);
     gpio_init(ILI9341_PIN_RST);
-    gpio_init(ILI9341_PIN_LED);
     gpio_set_dir(ILI9341_PIN_CS, GPIO_OUT);
     gpio_set_dir(ILI9341_PIN_DC, GPIO_OUT);
     gpio_set_dir(ILI9341_PIN_RST, GPIO_OUT);
-    gpio_set_dir(ILI9341_PIN_LED, GPIO_OUT);
     gpio_put(ILI9341_PIN_CS, 1);
-    gpio_put(ILI9341_PIN_LED, 1);
 
     spi_init(ILI9341_SPI, 24 * 1000 * 1000);
     gpio_set_function(ILI9341_PIN_SCK, GPIO_FUNC_SPI);
@@ -88,6 +97,21 @@ void ili9341_init() {
     command_with_data(cmd_madctl, &memory_access, 1);
     command(cmd_dispon);
     sleep_ms(100);
+}
+
+void ili9341_fill(uint16_t color) {
+    set_window(0, 0, ILI9341_TFTWIDTH - 1, ILI9341_TFTHEIGHT - 1);
+    write_color(color, static_cast<size_t>(ILI9341_TFTWIDTH) * ILI9341_TFTHEIGHT);
+}
+
+void ili9341_fill_rect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t color) {
+    if (x >= ILI9341_TFTWIDTH || y >= ILI9341_TFTHEIGHT || width == 0 || height == 0) {
+        return;
+    }
+    if (x + width > ILI9341_TFTWIDTH) width = ILI9341_TFTWIDTH - x;
+    if (y + height > ILI9341_TFTHEIGHT) height = ILI9341_TFTHEIGHT - y;
+    set_window(x, y, x + width - 1, y + height - 1);
+    write_color(color, static_cast<size_t>(width) * height);
 }
 
 void ili9341_flush(lv_display_t *display, const lv_area_t *area, uint8_t *pixels) {

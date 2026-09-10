@@ -1,3 +1,9 @@
 build/
+build-*/
+cmake-build-*/
+.idea/
+.vscode/
+.DS_Store
+picotooluse
 managed_components/
 dependencies.lock

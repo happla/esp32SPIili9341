@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.16)
 
 set(PICO_BOARD "pico_w" CACHE STRING "Pico board target")
 
+if(PICO_BOARD STREQUAL "pico2_w" AND NOT DEFINED PICO_COMPILER)
+	set(PICO_COMPILER pico_arm_cortex_m33_gcc CACHE STRING "Pico compiler")
+endif()
+
 if(NOT DEFINED ENV{PICO_SDK_PATH})
 	message(FATAL_ERROR "PICO_SDK_PATH must point to the Pico SDK")
 endif()

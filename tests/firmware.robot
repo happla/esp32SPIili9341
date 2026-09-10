@@ -10,15 +10,14 @@ ${BOARD}          pico_w
 ${UF2_FILE}       ${BUILD_DIR}${/}ili9341_pico.uf2
 
 *** Test Cases ***
-Pico Source Exposes LVGL Display Path
+Pico Source Exposes Direct Display Path
     [Tags]    source
     ${main}=    Get File    ${PROJECT_ROOT}${/}main${/}pico_main.cpp
     ${driver}=    Get File    ${PROJECT_ROOT}${/}main${/}pico_ili9341.cpp
-    Should Contain    ${main}    lv_init()
-    Should Contain    ${main}    lv_display_set_flush_cb
     Should Contain    ${main}    ili9341_init()
+    Should Contain    ${main}    ili9341_fill_rect
     Should Contain    ${driver}    spi_write_blocking
-    Should Contain    ${driver}    lv_display_flush_ready
+    Should Contain    ${driver}    void ili9341_fill_rect
 
 Pico Pin Map Matches Display Wiring
     [Tags]    source

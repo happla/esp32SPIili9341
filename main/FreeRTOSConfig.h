@@ -32,6 +32,7 @@
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY    191
 
 #define INCLUDE_vTaskDelay                      1
+#define INCLUDE_vTaskSuspend                    1
 #define INCLUDE_xTaskGetSchedulerState          1
 #define INCLUDE_vTaskDelete                     1
 #define INCLUDE_xTimerPendFunctionCall           1
