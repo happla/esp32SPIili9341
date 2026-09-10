@@ -52,6 +52,8 @@ target_link_libraries(lvgl PUBLIC pico_stdlib)
 add_executable(ili9341_pico
 	main/pico_main.cpp
 	main/pico_ili9341.cpp
+	main/pico_storage.cpp
+	main/pico_touch.cpp
 )
 
 target_include_directories(ili9341_pico PRIVATE main)

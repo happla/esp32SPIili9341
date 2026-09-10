@@ -14,10 +14,14 @@ Pico Source Exposes Direct Display Path
     [Tags]    source
     ${main}=    Get File    ${PROJECT_ROOT}${/}main${/}pico_main.cpp
     ${driver}=    Get File    ${PROJECT_ROOT}${/}main${/}pico_ili9341.cpp
+    ${touch}=    Get File    ${PROJECT_ROOT}${/}main${/}pico_touch.cpp
+    ${storage}=    Get File    ${PROJECT_ROOT}${/}main${/}pico_storage.cpp
     Should Contain    ${main}    ili9341_init()
     Should Contain    ${main}    ili9341_fill_rect
     Should Contain    ${driver}    spi_write_blocking
     Should Contain    ${driver}    void ili9341_fill_rect
+    Should Contain    ${touch}    spi_write_read_blocking
+    Should Contain    ${storage}    flash_range_program
 
 Pico Pin Map Matches Display Wiring
     [Tags]    source
