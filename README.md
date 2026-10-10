@@ -11,16 +11,12 @@ with an XPT2046-compatible resistive touchscreen.
 
 The ESP32 display UI and touchscreen are tested and working.
 
-The Pico W port currently has a verified LVGL/FreeRTOS build and generated UF2,
-but its hardware display test and touch/UI port are still incomplete.
-
 ## ESP32 Firmware
 
 The ESP32 firmware includes:
 
 - ILI9341 display initialization over VSPI
 - XPT2046 touchscreen input and calibration
-- Sauna controller demo interface
 - FreeRTOS display task
 
 ## Hardware
@@ -98,7 +94,6 @@ Pico W / Pico 2 W pin mappings, UF2 flashing, and SWD recovery instructions.
 - Port the tested ESP32 UI behavior to the Pico branch.
 - Add Pico XPT2046 touch input.
 - Persist touch calibration so the user does not need to calibrate on every boot.
-- Enhance the LVGL UI after the functional port is complete.
 
 <div>
     <img src="https://github.com/happla/esp32SPIili9341/blob/main/IMG_1814.JPG" width="400">
