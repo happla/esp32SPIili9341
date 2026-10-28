@@ -7,6 +7,7 @@
 #include "pico/stdlib.h"
 
 #include "pico_ili9341.h"
+#include "pico_lvgl_wifi.h"
 #include "pico_storage.h"
 #include "pico_touch.h"
 #include "pins_pico2w.h"
@@ -14,9 +15,9 @@
 extern "C" void vApplicationStackOverflowHook(TaskHandle_t, char *) {
     taskDISABLE_INTERRUPTS();
     for (;;) {
+        tight_loop_contents();
     }
 }
-
 static void render_screen(const PicoSettings &settings, bool heater_on) {
     constexpr uint16_t black = 0x0000;
     constexpr uint16_t navy = 0x000F;
@@ -214,10 +215,8 @@ static void display_task(void *) {
                 heater_on = !heater_on;
                 render_heater(heater_on);
             } else if (!settings.locked && point.x >= 160 && point.x <= 315 && point.y >= 175 && point.y <= 220) {
-                wifi_screen = true;
-                wifi_field = 1;
-                keyboard_lowercase = false;
-                render_wifi(settings, wifi_field, keyboard_lowercase);
+                pico_lvgl_wifi_run(&settings);
+                render_screen(settings, heater_on);
             }
             while (pico_touch_read(settings.calibration_min_x, settings.calibration_max_x,
                                    settings.calibration_min_y, settings.calibration_max_y).pressed) {
@@ -238,7 +237,7 @@ static void application_task(void *) {
 int main() {
     stdio_init_all();
 
-    xTaskCreate(display_task, "Display", 2048, nullptr, 2, nullptr);
+    xTaskCreate(display_task, "Display", 8192, nullptr, 2, nullptr);
     xTaskCreate(application_task, "Application", 1024, nullptr, 1, nullptr);
     vTaskStartScheduler();
 
